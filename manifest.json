@@ -1,0 +1,23 @@
+{
+    "name": "scroll-mru",
+    "version": "1",
+    "manifest_version": 2,
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "content_scripts": [
+        {
+            "matches": ["http://*/*", "file:///*/*", "https://*/*"],
+            "js": ["scroll.js"]
+        }
+    ]
+    , "commands": {
+        "scroll-prev": {
+            "suggested_key": {
+                "default": "Alt+G"
+            }
+            , "description": "Scroll back"
+        }
+    }
+    , "permissions" : ["activeTab"]
+}
