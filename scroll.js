@@ -34,12 +34,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             point = history.length;
         }
 
-        if (point < 1) {
-            point = history.length;
-        }
         point -= 1;
         if (Math.abs(history[point] - window.scrollY) < 45) {
             point -= 1;
+        }
+       if (point < 0) {
+            point = history.length - 1;
         }
         console.log("scrollto: " + history[point]);
         window.scroll(window.scrollX, history[point]);
