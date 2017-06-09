@@ -8,7 +8,8 @@
     "content_scripts": [
         {
             "matches": ["http://*/*", "file:///*/*", "https://*/*"],
-            "js": ["scroll.js"]
+            "js": ["scroll.js"],
+            "css": ["smooth.css"]
         }
     ]
     , "commands": {
