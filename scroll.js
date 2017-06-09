@@ -23,6 +23,16 @@ function keyupHandler(e) {
     }
 }
 
+function escHandler(e) {
+    if (e.key === "Escape") {
+        let current = history.pop(); history.push(current);
+        window.scroll(window.scrollX, current);
+        grab = false;
+        document.body.removeEventListener("keyup", keyupHandler);
+        document.body.removeEventListener("keypress", escHandler);
+    }
+}
+
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "grab") {
@@ -30,6 +40,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         if (!grab) {
             document.body.addEventListener("keyup", keyupHandler);
+            document.body.addEventListener("keypress", escHandler);
             grab = true;
             point = history.length;
         }
