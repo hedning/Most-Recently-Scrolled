@@ -1,10 +1,39 @@
 
 let grab = false;
-let history = [window.scrollY];
+let history = [];
 let point = 1;
 
-function push(position) {
-    history.push(position);
+initIndicatorContainer();
+
+let anchor = createPosition(window.scrollY);
+
+anchor.indicator.style.border = "solid 1px pink"
+
+push(window.scrollY);
+
+function createPosition(offset) {
+    return {offset: offset, indicator: createIndicator(offset)};
+}
+
+function updatePosition(position, offset) {
+    position.offset = offset;
+    position.indicator.style.top = ""+((offset/document.body.scrollHeight)*100)+"%";
+}
+
+function push(offset) {
+    history.push(createPosition(offset));
+    renumberIndicators();
+}
+
+// Pops top entry and removes associated visual indicator
+function pop() {
+    var x = history.pop();
+    x.indicator.remove();
+    return x;
+}
+
+function peek() {
+    return history[history.length-1];
 }
 
 function release() {
@@ -12,6 +41,7 @@ function release() {
     history = history.slice(0, point).concat(history.slice(point+1), [history[point]]);
     console.log(history);
     grab = false;
+    renumberIndicators();
 }
 
 function keyupHandler(e) {
@@ -25,8 +55,7 @@ function keyupHandler(e) {
 
 function escHandler(e) {
     if (e.key === "Escape") {
-        let current = history.pop(); history.push(current);
-        window.scroll(window.scrollX, current);
+        window.scroll(window.scrollX, anchor.offset);
         grab = false;
         document.body.removeEventListener("keyup", keyupHandler);
         document.body.removeEventListener("keypress", escHandler);
@@ -38,22 +67,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "grab") {
         console.log("message received grab");
 
+
         if (!grab) {
             document.body.addEventListener("keyup", keyupHandler);
             document.body.addEventListener("keypress", escHandler);
             grab = true;
             point = history.length;
+
+            updatePosition(anchor, window.scrollY);
+
         }
 
-        point -= 1;
-        if (Math.abs(history[point] - window.scrollY) < 45) {
-            point -= 1;
+        point = (point - 1 + history.length) % history.length;
+        if (Math.abs(history[point].offset - window.scrollY) < 45) {
+            point = (point - 1 + history.length) % history.length;
         }
-       if (point < 0) {
-            point = history.length - 1;
-        }
-        console.log("scrollto: " + history[point]);
-        window.scroll(window.scrollX, history[point]);
+        console.log("scrollto: " + history[point].offset);
+        window.scroll(window.scrollX, history[point].offset);
 
     }
 })
@@ -61,7 +91,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 let timer;
 let delay = 1000;
-let anchor = window.scrollY;
 let threshold = window.innerHeight*1.5;
 console.log("threshold: " + threshold);
 function scrollHandler(e) {
@@ -71,21 +100,55 @@ function scrollHandler(e) {
     window.clearTimeout(timer);
     timer = window.setTimeout(() => {
 
-        if (Math.abs(window.scrollY - anchor) > threshold) {
-            let last = history.pop();
+        if (Math.abs(window.scrollY - anchor.offset) > threshold) {
+            let last = peek().offset;
             console.log("anchor: " + anchor);
-            if (Math.abs(anchor - last) > threshold) {
-                history.push(last);
-                history.push(anchor);
-            } else {
-                history.push(anchor);
+            if (Math.abs(anchor.offset - last) > threshold) {
+                push(anchor.offset);
             }
-            history.push(window.scrollY);
+            push(window.scrollY);
         }
 
         // logic
-        anchor = window.scrollY;
+        updatePosition(anchor, window.scrollY);
+
     }, delay);
 }
 
 window.addEventListener("scroll", scrollHandler);
+
+function renumberIndicators() {
+    history.forEach((elem, i) => {
+        elem.indicator.innerText = ""+(history.length-i)
+    });
+}
+
+function createIndicator(offset) {
+    var indicator = document.createElement("div");
+    indicator.classList.add("most-recently-scrolled-indicator");
+    indicator.style.position = "absolute";
+    indicator.style.top = ""+((offset/document.body.scrollHeight)*100)+"%";
+    indicator.style.left = "0px";
+    indicator.style.width = "100%";
+    indicator.style.background = "yellow";
+    indicator.style.border = "solid 1px black";
+
+    indicatorContainer.appendChild(indicator);
+
+    return indicator;
+}
+
+function initIndicatorContainer() {
+    indicatorContainer = document.createElement("div")
+
+    indicatorContainer.style.background = "transparent";
+    indicatorContainer.style.position = "fixed";
+    indicatorContainer.style.right = "0px"
+    indicatorContainer.style.top = "0px"
+    indicatorContainer.style.width = "10px";
+    indicatorContainer.style.height = "100%";
+
+    document.body.appendChild(indicatorContainer);
+    
+}
+
