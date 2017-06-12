@@ -49,7 +49,16 @@ function keyupHandler(e) {
     // console.log(e);
     if (e.key === "Alt") {
         document.body.removeEventListener("keyup", keyupHandler);
+
+        if (Math.abs(window.scrollY - anchor.offset) > threshold) {
+            if(Math.abs(peek().offset - anchor.offset) > 50) {
+                push(anchor.offset);
+            }
+        }
+
         release();
+
+        updatePosition(anchor, window.scrollY);
     }
 }
 
@@ -103,10 +112,7 @@ function scrollHandler(e) {
         if (Math.abs(window.scrollY - anchor.offset) > threshold) {
             let last = peek().offset;
             console.log("anchor: " + anchor);
-            if (Math.abs(anchor.offset - last) > threshold) {
-                push(anchor.offset);
-            }
-            push(window.scrollY);
+            push(anchor.offset);
         }
 
         // logic
