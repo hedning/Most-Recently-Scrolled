@@ -3,6 +3,8 @@ let grab = false;
 let history = [];
 let point = 1;
 
+let colors = ["red", "orange", "yellow", "green", "blue"];
+
 initIndicatorContainer();
 
 let anchor = createPosition(window.scrollY);
@@ -22,7 +24,7 @@ function updatePosition(position, offset) {
 
 function push(offset) {
     history.push(createPosition(offset));
-    renumberIndicators();
+    colorIndicators();
 }
 
 // Pops top entry and removes associated visual indicator
@@ -41,7 +43,7 @@ function release() {
     history = history.slice(0, point).concat(history.slice(point+1), [history[point]]);
     console.log(history);
     grab = false;
-    renumberIndicators();
+    colorIndicators();
 }
 
 function keyupHandler(e) {
@@ -128,6 +130,17 @@ function renumberIndicators() {
     history.forEach((elem, i) => {
         elem.indicator.innerText = ""+(history.length-i)
     });
+}
+
+function colorIndicators() {
+    let c = 0;
+    for (let i=history.length - 1; i >= 0; --i) {
+        let color = colors[(c + colors.length) % colors.length];
+        let opacity = Math.exp(-Math.floor(c / colors.length));
+        history[i].indicator.style.border = "solid 1px " + color;
+        history[i].indicator.style.opacity = opacity.toString();
+        c += 1;
+    }
 }
 
 function createIndicator(offset) {
