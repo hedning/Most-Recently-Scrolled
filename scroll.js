@@ -83,6 +83,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             grab = true;
             point = history.length;
 
+            window.clearTimeout(timer);
             updatePosition(anchor, window.scrollY);
 
         }
