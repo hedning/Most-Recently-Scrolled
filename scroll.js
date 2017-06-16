@@ -58,9 +58,9 @@ function keyupHandler(e) {
             }
         }
 
+        updatePosition(anchor, history[point].offset);
         release();
 
-        updatePosition(anchor, window.scrollY);
     }
 }
 
