@@ -139,6 +139,7 @@ function colorIndicators() {
         let opacity = Math.exp(-Math.floor(c / colors.length));
         history[i].indicator.style.border = "solid 1px " + color;
         history[i].indicator.style.opacity = opacity.toString();
+        history[i].indicator.style.zIndex = i+1;
         c += 1;
     }
 }
