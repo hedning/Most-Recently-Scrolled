@@ -173,3 +173,69 @@ function initIndicatorContainer() {
     
 }
 
+
+/**
+  * Assumption: all elements have a common root offsetParent.
+  */
+function absoluteOffset(elem) {
+    if (elem === null)
+        return 0;
+    return elem.offsetTop + absoluteOffset(elem.offsetParent);
+}
+
+/**
+ * Assumption: Document is the scrolling container.
+ */
+function Marker(element, absolute_y) {
+    this.set(element, absolute_y);
+}
+
+Marker.prototype.set = function set(element, absolute_y) {
+    this.element = element;
+    let elementHeight = element.offsetHeight;
+    let viewportHeight = window.innerHeight;
+    if(elementHeight === 0) {
+        this.ry_e = 0;
+    } else {
+        this.ry_e = (absolute_y - absoluteOffset(element)) / elementHeight;
+    }
+    this.ry_v = (absolute_y - window.scrollY) / viewportHeight;
+}
+
+/**
+ * Returns the scroll value that will position the viewport such that the marker 
+ * appears at the same viewport position as when created.
+ */
+Marker.prototype.scrollY = function scrollY() {
+    return absoluteOffset(this.element) - this.viewportOffset();
+}
+
+Marker.prototype.viewportOffset = function viewportOffset() {
+    return this.ry_v * window.innerHeight
+         - this.ry_e * this.element.offsetHeight;
+}
+
+Marker.prototype.absoluteOffset = function absoluteOffset() {
+    return absoluteOffset(this.element) + this.ry_e * element.offsetHeight;
+}
+
+
+function activateResizeFollowPointer() {
+    /* Attempt to keep this point stationary relative to the viewport on resize
+     * and zoom */
+    let focusMarker = new Marker(document.body, window.scrollY);
+
+    window.onmousemove = function(e) {
+        focusMarker.set(e.target, e.pageY);
+    }
+
+    window.onresize = function (e) {
+        let focusScrollY = focusMarker.scrollY();
+        // WEAKNESS: When smooth scrolling is on this scroll is visible and quite
+        //           jarring
+        window.scrollTo(0, focusScrollY);
+    }
+}
+
+// EXPERIMENT
+activateResizeFollowPointer();
